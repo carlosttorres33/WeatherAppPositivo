@@ -62,7 +62,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <fragment
+        <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
