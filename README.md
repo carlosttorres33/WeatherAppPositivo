@@ -9,6 +9,8 @@ En la parte inferior se muestra un mapa el cual navega hacia la ubicacion selecc
 
 Aun implementare la opcion de el funcionamiento de manera offline, la conversion de modelos entre capas, ya que aun estoy usando el mismo modelo de la respuesta y la seccion de los Tests.
 
+Asi como mejoras en la UI y terminar de manejar los errores
+
 
 
 El apk para instalar y probar la aplicacion se encuentra en la seccion de Releases, de igual manera adjunto el link para poderla descargar: https://github.com/carlosttorres33/WeatherAppPositivo/releases/download/V1/WeatherApp1.0.0.apk
