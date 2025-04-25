@@ -29,11 +29,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "1.8"
     }
     buildFeatures {
         dataBinding = true
@@ -68,7 +68,20 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.moshi)
     implementation(libs.retrofit.converter.gson)
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.1") // Core Moshi library
-    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.15.1")
+
+    //Google Maps
+    implementation("com.google.maps.android:maps-ktx:3.2.0")
+    implementation("com.google.maps.android:maps-utils-ktx:3.2.0")
+    implementation("com.google.maps.android:android-maps-utils:2.2.3")
+
+    //Location
+    implementation("com.google.android.gms:play-services-maps:18.0.2")
+    implementation("com.google.android.gms:play-services-location:20.0.0")
+
+    implementation ("com.github.prabhat1707:EasyWayLocation:2.4")
+
+    implementation ("com.google.maps.android:places-ktx:2.0.0")
+
+    implementation("com.android.volley:volley:1.2.1")
 
 }
