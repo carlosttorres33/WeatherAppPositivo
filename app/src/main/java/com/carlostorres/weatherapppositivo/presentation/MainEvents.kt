@@ -1,6 +1,9 @@
 package com.carlostorres.weatherapppositivo.presentation
 
+import com.google.android.gms.maps.model.LatLng
+
 sealed interface MainEvents {
-    data object OnSearchClicked : MainEvents
-    data class OnPlaceSelected(val latitude: Double, val longitude: Double) : MainEvents
+    data object OnSearchPlaceWeather : MainEvents
+    data object GetMyCurrentLocationWeather : MainEvents
+    data class ChangeLocation(val newLocation: LatLng) : MainEvents
 }

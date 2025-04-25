@@ -5,7 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.carlostorres.weatherapppositivo.data.remote.model.WeatherResponse
 import com.carlostorres.weatherapppositivo.domain.usecases.GetWeatherFromCoordinatesUseCase
+import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,63 +18,62 @@ class MainViewModel @Inject constructor(
     private val getWeatherFromCoordinatesUseCase: GetWeatherFromCoordinatesUseCase
 ) : ViewModel() {
 
-    private val _state = MutableLiveData(MainState())
-    val state: LiveData<MainState> = _state
+    private val _isLoading = MutableLiveData(false)
+    val isLoading : LiveData<Boolean> = _isLoading
+    private val _weather = MutableLiveData<WeatherResponse?>()
+    val weather : LiveData<WeatherResponse?> = _weather
+    private val _error = MutableLiveData<String?>()
+    val error : LiveData<String?> = _error
+
+    private val _locationLatLng = MutableLiveData<LatLng?>(null)
+    val locationLatLng : LiveData<LatLng?> = _locationLatLng
 
     fun onEvent(event: MainEvents) {
         when (event) {
-            is MainEvents.OnPlaceSelected -> {
-                _state.postValue(
-                    _state.value?.copy(
-                        latitude = event.latitude,
-                        longitude = event.longitude
-                    )
-                )
-            }
-
-            is MainEvents.OnSearchClicked -> {
-                if (_state.value?.latitude != null || _state.value?.longitude != null) {
-                    getWeatherFromCoordinates(_state.value?.latitude!!, _state.value?.longitude!!)
+            is MainEvents.OnSearchPlaceWeather -> {
+                if (_locationLatLng.value?.latitude != null || _locationLatLng.value?.longitude != null) {
+                    getWeatherFromCoordinates()
                 }
+            }
+            is MainEvents.GetMyCurrentLocationWeather -> {
+                getWeatherFromCoordinates()
+            }
+            is MainEvents.ChangeLocation -> {
+                _locationLatLng.value = LatLng(event.newLocation.latitude, event.newLocation.longitude)
+                println("NewLocation: ${_locationLatLng.value}, event: ${event.newLocation}")
             }
         }
     }
 
-    private fun getWeatherFromCoordinates(
-        latitude: Double,
-        longitude: Double
-    ) = viewModelScope.launch(Dispatchers.IO) {
+    private fun getWeatherFromCoordinates() = viewModelScope.launch(Dispatchers.IO) {
 
-        _state.postValue(MainState(isLoading = true, weather = null, error = null))
+        _isLoading.postValue(true)
 
         try {
 
-            val weatherResponse = getWeatherFromCoordinatesUseCase(latitude, longitude)
+            val weatherResponse = getWeatherFromCoordinatesUseCase(
+                latitude = _locationLatLng.value!!.latitude,
+                longitude = _locationLatLng.value!!.longitude
+            )
 
             if (weatherResponse != null) {
-                _state.postValue(
-                    MainState(
-                        isLoading = false,
-                        weather = weatherResponse,
-                        error = null
-                    )
-                )
+                _isLoading.postValue(false)
+                _weather.postValue(weatherResponse)
+                _error.postValue(null)
                 Log.d("MainViewModel", "Weather data fetched successfully")
             } else {
-                _state.postValue(
-                    MainState(
-                        isLoading = false,
-                        weather = null,
-                        error = "Error fetching weather data"
-                    )
-                )
+                _isLoading.postValue(false)
+                _weather.postValue(null)
+                _error.postValue("Error fetching weather data")
                 Log.e("MainViewModel", "Error fetching weather data")
             }
 
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e("MainViewModel", "Error fetching weather data: ${e.message}")
-            _state.postValue(MainState(isLoading = true, weather = null, error = e.message))
+            _isLoading.postValue(false)
+            _weather.postValue(null)
+            _error.postValue(e.message)
         }
 
     }

@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -19,7 +18,6 @@ import com.example.easywaylocation.Listener
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.Priority
-import com.google.android.gms.maps.CameraUpdate
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -42,13 +40,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
     private val viewModel: MainViewModel by viewModels()
     private var googleMap: GoogleMap? = null
     private var easyWayLocation: EasyWayLocation? = null
-    private var myLocationLatLng: LatLng? = null
 
     //Google Places
     private var places: PlacesClient? = null
     private var autoCompletePlace: AutocompleteSupportFragment? = null
     private var placeName = ""
-    private var placeLatLng: LatLng? = null
 
     private var isLocationEnabled = false
 
@@ -77,6 +73,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
 
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        binding.lifecycleOwner = this
+        binding.viewModel = viewModel
         setContentView(binding.root)
 
         val mapFragment = supportFragmentManager
@@ -100,54 +98,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
 
         startGooglePlaces()
 
-        initListeners()
-        initObservers()
-
-    }
-
-    private fun initListeners() {
-        binding.mbSearch.setOnClickListener {
-            if (viewModel.state.value?.latitude != null && viewModel.state.value?.longitude != null) {
-                viewModel.onEvent(MainEvents.OnSearchClicked)
-            }
-        }
-    }
-
-    private fun initObservers() {
-        viewModel.state.observe(this) { state ->
-            if (state.isLoading) {
-                binding.pbLoading.visibility = View.VISIBLE
-            } else {
-                binding.pbLoading.visibility = View.GONE
-            }
-            if (state.weather != null) {
-                binding.tvWeatherInfo.text = state.weather.weather.first().description
-                binding.tvWeatherPlace.text = placeName
-                binding.tvTemperature.text = state.weather.main.temp.toString()
-                binding.tvHumidity.text = state.weather.main.humidity.toString()
-                binding.tvWind.text = state.weather.wind.speed.toString()
-                binding.tvRain.text = state.weather.clouds.toString()
-                binding.tvWeatherPlace.visibility = View.VISIBLE
-                binding.tvTemperature.visibility = View.VISIBLE
-                binding.tvHumidity.visibility = View.VISIBLE
-                binding.tvWind.visibility = View.VISIBLE
-                binding.tvRain.visibility = View.VISIBLE
-                when(state.weather.weather.first().main){
-                    "Clouds" -> binding.ivWeather.setImageResource(R.drawable.cloudy)
-                    "Clear" -> binding.ivWeather.setImageResource(R.drawable.sunny)
-                    "Rain" -> binding.ivWeather.setImageResource(R.drawable.rain)
-                    "Snow" -> binding.ivWeather.setImageResource(R.drawable.snowy)
-                    "Sun" -> binding.ivWeather.setImageResource(R.drawable.sunny)
-                    else -> binding.ivWeather.setImageResource(R.drawable.wind)
-                }
-            }else{
-                binding.tvWeatherPlace.visibility = View.GONE
-                binding.tvTemperature.visibility = View.GONE
-                binding.tvHumidity.visibility = View.GONE
-                binding.tvWind.visibility = View.GONE
-                binding.tvRain.visibility = View.GONE
-            }
-        }
     }
 
     private fun instanceAutoCompletePlace() {
@@ -168,18 +118,24 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
 
                 override fun onPlaceSelected(place: Place) {
                     placeName = place.name!!
-                    placeLatLng = place.latLng!!
-                    Log.i("Place", "Place: $placeName, $placeLatLng")
-                    viewModel.onEvent(MainEvents.OnPlaceSelected(placeLatLng!!.latitude, placeLatLng!!.longitude))
+                    viewModel.onEvent(
+                        event = MainEvents.ChangeLocation(
+                            newLocation = place.latLng!!
+                        )
+                    )
+                    Log.i("Place", "Place: $placeName, ${viewModel.locationLatLng}")
                     googleMap?.moveCamera(
                         CameraUpdateFactory.newCameraPosition(
-                            CameraPosition.builder().target(placeLatLng!!).zoom(17f).build()
+                            CameraPosition.builder().target(viewModel.locationLatLng.value!!).zoom(15f).build()
                         )
+                    )
+                    viewModel.onEvent(
+                        event = MainEvents.OnSearchPlaceWeather
                     )
                 }
 
                 override fun onError(p0: Status) {
-                    TODO("Not yet implemented")
+                    println("Error: ${p0.statusMessage}")
                 }
 
             }
@@ -187,8 +143,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
     }
 
     private fun limitSearch() {
-        val northSide = SphericalUtil.computeOffset(myLocationLatLng, 5000.0, 0.0)
-        val southSide = SphericalUtil.computeOffset(myLocationLatLng, 5000.0, 180.0)
+        val northSide = SphericalUtil.computeOffset(viewModel.locationLatLng?.value ?: LatLng(0.0,0.0), 1000.0, 0.0)
+        val southSide = SphericalUtil.computeOffset(viewModel.locationLatLng?.value ?: LatLng(0.0,0.0), 1000.0, 180.0)
 
         autoCompletePlace?.setLocationBias(RectangularBounds.newInstance(southSide, northSide))
     }
@@ -236,15 +192,29 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
     }
 
     override fun currentLocation(location: Location) {
-        if (placeLatLng == null) {
 
-            myLocationLatLng = LatLng(location.latitude, location.longitude)
+        if (viewModel.locationLatLng.value == null) {
+
+            val myLocationLatLng = LatLng(location.latitude, location.longitude)
+
+            viewModel.onEvent(
+                MainEvents.ChangeLocation(
+                    newLocation = myLocationLatLng
+                )
+            )
+
+            println("User Location tracked")
+
+            viewModel.onEvent(
+                MainEvents.GetMyCurrentLocationWeather
+            )
 
             googleMap?.moveCamera(
                 CameraUpdateFactory.newCameraPosition(
-                    CameraPosition.builder().target(myLocationLatLng!!).zoom(17f).build()
+                    CameraPosition.builder().target(myLocationLatLng).zoom(15f).build()
                 )
             )
+            easyWayLocation?.endUpdates()
         }
 
         if (!isLocationEnabled) {

@@ -70,18 +70,18 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
 
     //Google Maps
-    implementation("com.google.maps.android:maps-ktx:3.2.0")
-    implementation("com.google.maps.android:maps-utils-ktx:3.2.0")
-    implementation("com.google.maps.android:android-maps-utils:2.2.3")
+    implementation(libs.maps.ktx)
+    implementation(libs.maps.utils.ktx)
+    implementation(libs.android.maps.utils)
 
     //Location
-    implementation("com.google.android.gms:play-services-maps:18.0.2")
-    implementation("com.google.android.gms:play-services-location:20.0.0")
+    implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
 
-    implementation ("com.github.prabhat1707:EasyWayLocation:2.4")
+    implementation (libs.easywaylocation)
 
-    implementation ("com.google.maps.android:places-ktx:2.0.0")
+    implementation (libs.places.ktx)
 
-    implementation("com.android.volley:volley:1.2.1")
+    implementation(libs.volley)
 
 }
