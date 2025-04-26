@@ -114,9 +114,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.isConnected.collect { connectionStatus ->
                     if (connectionStatus is ConnectionStatus.Lost) {
-                            Snackbar.make(binding.root, "No tienes conexión", Snackbar.LENGTH_LONG)
-                                .setAction("Ocultar"){}
-                                .show()
+                        Snackbar.make(binding.root, "No tienes conexión", Snackbar.LENGTH_LONG)
+                            .setAction("Ocultar") {}
+                            .show()
                     }
                 }
             }
@@ -135,7 +135,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
             )
         )
         autoCompletePlace?.setHint("Buscar Lugar")
-        autoCompletePlace?.setCountry("MX")
         autoCompletePlace?.setOnPlaceSelectedListener(
             object : PlaceSelectionListener {
 
@@ -164,21 +163,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
 
             }
         )
-    }
-
-    private fun limitSearch() {
-        val northSide = SphericalUtil.computeOffset(
-            viewModel.locationLatLng?.value ?: LatLng(0.0, 0.0),
-            1000.0,
-            0.0
-        )
-        val southSide = SphericalUtil.computeOffset(
-            viewModel.locationLatLng?.value ?: LatLng(0.0, 0.0),
-            1000.0,
-            180.0
-        )
-
-        autoCompletePlace?.setLocationBias(RectangularBounds.newInstance(southSide, northSide))
     }
 
     private fun startGooglePlaces() {
@@ -251,7 +235,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
 
         if (!isLocationEnabled) {
             isLocationEnabled = true
-            limitSearch()
         }
     }
 
