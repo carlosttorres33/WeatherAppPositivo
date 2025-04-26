@@ -6,6 +6,8 @@ import com.carlostorres.weatherapppositivo.data.remote.WeatherService
 import com.carlostorres.weatherapppositivo.data.repository.WeatherRepositoryImplementation
 import com.carlostorres.weatherapppositivo.domain.repository.WeatherRepository
 import com.carlostorres.weatherapppositivo.domain.usecases.GetWeatherFromCoordinatesUseCase
+import com.carlostorres.weatherapppositivo.utils.ConnectivityObserver
+import com.carlostorres.weatherapppositivo.utils.ConnectivityObserverImpl
 import com.carlostorres.weatherapppositivo.utils.Constants.BASE_URL
 import dagger.Module
 import dagger.Provides
@@ -56,5 +58,11 @@ object AppModule {
     fun provideGetWeatherFromCoordinatesUseCase(
         weatherRepository: WeatherRepository
     ) : GetWeatherFromCoordinatesUseCase = GetWeatherFromCoordinatesUseCase(weatherRepository)
+
+    @Singleton
+    @Provides
+    fun provideConnectivityObserver(
+        @ApplicationContext context: Context
+    ) : ConnectivityObserver = ConnectivityObserverImpl(context)
 
 }

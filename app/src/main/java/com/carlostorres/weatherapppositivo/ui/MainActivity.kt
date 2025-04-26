@@ -9,10 +9,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.carlostorres.weatherapppositivo.R
 import com.carlostorres.weatherapppositivo.databinding.ActivityMainBinding
 import com.carlostorres.weatherapppositivo.presentation.MainEvents
 import com.carlostorres.weatherapppositivo.presentation.MainViewModel
+import com.carlostorres.weatherapppositivo.utils.ConnectionStatus
 import com.example.easywaylocation.EasyWayLocation
 import com.example.easywaylocation.Listener
 import com.google.android.gms.common.api.Status
@@ -30,8 +34,12 @@ import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.android.material.snackbar.Snackbar
 import com.google.maps.android.SphericalUtil
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
@@ -97,7 +105,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
         )
 
         startGooglePlaces()
+        initObservers()
 
+    }
+
+    private fun initObservers() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.isConnected.collect { connectionStatus ->
+                    if (connectionStatus is ConnectionStatus.Lost) {
+                            Snackbar.make(binding.root, "No tienes conexión", Snackbar.LENGTH_LONG)
+                                .setAction("Ocultar"){}
+                                .show()
+                    }
+                }
+            }
+        }
     }
 
     private fun instanceAutoCompletePlace() {
@@ -126,7 +149,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
                     Log.i("Place", "Place: $placeName, ${viewModel.locationLatLng}")
                     googleMap?.moveCamera(
                         CameraUpdateFactory.newCameraPosition(
-                            CameraPosition.builder().target(viewModel.locationLatLng.value!!).zoom(15f).build()
+                            CameraPosition.builder().target(viewModel.locationLatLng.value!!)
+                                .zoom(15f).build()
                         )
                     )
                     viewModel.onEvent(
@@ -143,8 +167,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
     }
 
     private fun limitSearch() {
-        val northSide = SphericalUtil.computeOffset(viewModel.locationLatLng?.value ?: LatLng(0.0,0.0), 1000.0, 0.0)
-        val southSide = SphericalUtil.computeOffset(viewModel.locationLatLng?.value ?: LatLng(0.0,0.0), 1000.0, 180.0)
+        val northSide = SphericalUtil.computeOffset(
+            viewModel.locationLatLng?.value ?: LatLng(0.0, 0.0),
+            1000.0,
+            0.0
+        )
+        val southSide = SphericalUtil.computeOffset(
+            viewModel.locationLatLng?.value ?: LatLng(0.0, 0.0),
+            1000.0,
+            180.0
+        )
 
         autoCompletePlace?.setLocationBias(RectangularBounds.newInstance(southSide, northSide))
     }

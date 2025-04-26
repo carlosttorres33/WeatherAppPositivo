@@ -7,16 +7,29 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.carlostorres.weatherapppositivo.data.remote.model.WeatherResponse
 import com.carlostorres.weatherapppositivo.domain.usecases.GetWeatherFromCoordinatesUseCase
+import com.carlostorres.weatherapppositivo.utils.ConnectionStatus
+import com.carlostorres.weatherapppositivo.utils.ConnectivityObserver
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val getWeatherFromCoordinatesUseCase: GetWeatherFromCoordinatesUseCase
+    private val getWeatherFromCoordinatesUseCase: GetWeatherFromCoordinatesUseCase,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
+
+    private val _isConnected = connectivityObserver.isConnected.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000L),
+        ConnectionStatus.Available
+    )
+    val isConnected : StateFlow<ConnectionStatus> = _isConnected
 
     private val _isLoading = MutableLiveData(false)
     val isLoading : LiveData<Boolean> = _isLoading
@@ -57,24 +70,41 @@ class MainViewModel @Inject constructor(
             )
 
             if (weatherResponse != null) {
-                _isLoading.postValue(false)
-                _weather.postValue(weatherResponse)
-                _error.postValue(null)
+                updateState(
+                    isLoading = false,
+                    weather = weatherResponse,
+                    error = null
+                )
                 Log.d("MainViewModel", "Weather data fetched successfully")
             } else {
-                _isLoading.postValue(false)
-                _weather.postValue(null)
-                _error.postValue("Error fetching weather data")
-                Log.e("MainViewModel", "Error fetching weather data")
+                updateState(
+                    isLoading = false,
+                    weather = null,
+                    error = "Error fetching weather data"
+                )
             }
 
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e("MainViewModel", "Error fetching weather data: ${e.message}")
-            _isLoading.postValue(false)
-            _weather.postValue(null)
-            _error.postValue(e.message)
+            updateState(
+                isLoading = false,
+                weather = null,
+                error = e.message
+            )
         }
+
+    }
+
+    private fun updateState(
+        isLoading: Boolean,
+        weather: WeatherResponse?,
+        error: String?
+    ){
+
+        _isLoading.postValue(isLoading)
+        _weather.postValue(weather)
+        _error.postValue(error)
 
     }
 
