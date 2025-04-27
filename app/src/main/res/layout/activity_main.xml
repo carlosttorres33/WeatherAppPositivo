@@ -249,7 +249,9 @@
                         android:layout_centerInParent="true"
                         android:text="@string/search_text"
                         app:isLoading="@{viewModel.isLoading}"
-                        app:weather="@{viewModel.weather}" />
+                        app:weather="@{viewModel.weather}"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"/>
 
                     <ProgressBar
                         android:id="@+id/pbLoading"
