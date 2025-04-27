@@ -7,11 +7,12 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.BindingAdapter
 import com.carlostorres.weatherapppositivo.R
-import com.carlostorres.weatherapppositivo.data.remote.model.WeatherResponse
+import com.carlostorres.weatherapppositivo.presentation.model.WeatherModel
+import com.carlostorres.weatherapppositivo.utils.ConnectionStatus
 
 @BindingAdapter("weatherIcon")
-fun ImageView.setWeatherIcon(weather: WeatherResponse?) {
-    val resId = when (weather?.weather?.first()?.main ?: "Sun") {
+fun ImageView.setWeatherIcon(weather: WeatherModel?) {
+    val resId = when (weather?.weatherMain ?: "Sun") {
         "Clouds" -> R.drawable.cloudy
         "Clear" -> R.drawable.cloudy_sunny
         "Rain" -> R.drawable.rain
@@ -29,59 +30,64 @@ fun View.setIsVisible(visible: Boolean) {
 }
 
 @BindingAdapter("setWeatherPlaceText")
-fun TextView.setWeatherPlaceText(weather: WeatherResponse?) {
+fun TextView.setWeatherPlaceText(weather: WeatherModel?) {
     text = weather?.name ?: ""
 }
 
 @BindingAdapter(value = ["weather", "isLoading"], requireAll = true)
-fun ConstraintLayout.showWeatherInfoCard(weather: WeatherResponse?, isLoading: Boolean) {
+fun ConstraintLayout.showWeatherInfoCard(weather: WeatherModel?, isLoading: Boolean) {
     visibility = if (weather != null && !isLoading) View.VISIBLE else View.GONE
 }
 
 
 @BindingAdapter(value = ["weather", "isLoading"], requireAll = true)
-fun TextView.showSearchTextMessage(weather: WeatherResponse?, isLoading: Boolean){
+fun TextView.showSearchTextMessage(weather: WeatherModel?, isLoading: Boolean){
     text = if (weather == null && !isLoading) context.getString(R.string.search_text) else ""
     visibility = if (weather == null && !isLoading) View.VISIBLE else View.GONE
 }
 
 @BindingAdapter("weatherTemperature")
-fun TextView.weatherTemperature(weather: WeatherResponse?){
+fun TextView.weatherTemperature(weather: WeatherModel?){
     if (weather != null){
-        text = "${weather.main.temp.toString().substringBefore(".")}°"
+        text = "${weather.temp} °"
     }
 }
 
 @BindingAdapter("weatherDescription")
-fun TextView.weatherDescription(weather: WeatherResponse?){
+fun TextView.weatherDescription(weather: WeatherModel?){
     if (weather != null){
-        text = "${weather.weather.first().description}"
+        text = "${weather.weatherDescription}"
     }
 }
 
 @BindingAdapter("rainPercentage")
-fun TextView.rainPercentage(weather: WeatherResponse?){
+fun TextView.rainPercentage(weather: WeatherModel?){
     text = if (weather != null){
-        "${weather.clouds.all} %"
+        "${weather.rainPercentage} %"
     }else{
         "N/A"
     }
 }
 
 @BindingAdapter("windSpeed")
-fun TextView.windSpeed(weather: WeatherResponse?){
+fun TextView.windSpeed(weather: WeatherModel?){
     text = if (weather != null){
-        "${weather.wind.speed} Km/h"
+        "${weather.windSpeed} Km/h"
     }else{
         "N/A"
     }
 }
 
 @BindingAdapter("humidity")
-fun TextView.humidity(weather: WeatherResponse?){
+fun TextView.humidity(weather: WeatherModel?){
     text = if (weather != null){
-        "${weather.main.humidity} %"
+        "${weather.humidity} %"
     }else{
         "N/A"
     }
+}
+
+@BindingAdapter("enableOfflineSearchClick")
+fun View.enableOfflineSearchClick(hasInternet: ConnectionStatus){
+    visibility = if (hasInternet == ConnectionStatus.Lost || hasInternet == ConnectionStatus.Unavailable) View.VISIBLE else View.GONE
 }

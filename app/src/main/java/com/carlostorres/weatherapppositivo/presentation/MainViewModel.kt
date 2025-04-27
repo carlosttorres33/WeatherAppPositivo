@@ -5,13 +5,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.carlostorres.weatherapppositivo.data.remote.model.WeatherResponse
+import com.carlostorres.weatherapppositivo.domain.usecases.GetCitiesWeatherSavedUseCase
 import com.carlostorres.weatherapppositivo.domain.usecases.GetWeatherFromCoordinatesUseCase
+import com.carlostorres.weatherapppositivo.presentation.model.WeatherModel
 import com.carlostorres.weatherapppositivo.utils.ConnectionStatus
 import com.carlostorres.weatherapppositivo.utils.ConnectivityObserver
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -21,10 +23,11 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val getWeatherFromCoordinatesUseCase: GetWeatherFromCoordinatesUseCase,
+    private val getCitiesWeatherSavedUseCase: GetCitiesWeatherSavedUseCase,
     private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
-    private val _isConnected = connectivityObserver.isConnected.stateIn(
+    private val _isConnected =  connectivityObserver.isConnected.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000L),
         ConnectionStatus.Available
@@ -33,10 +36,13 @@ class MainViewModel @Inject constructor(
 
     private val _isLoading = MutableLiveData(false)
     val isLoading : LiveData<Boolean> = _isLoading
-    private val _weather = MutableLiveData<WeatherResponse?>()
-    val weather : LiveData<WeatherResponse?> = _weather
+    private val _weather = MutableLiveData<WeatherModel?>()
+    val weather : LiveData<WeatherModel?> = _weather
     private val _error = MutableLiveData<String?>()
     val error : LiveData<String?> = _error
+
+    private val _citiesWeather = MutableStateFlow<List<WeatherModel>>(emptyList())
+    val citiesWeather : StateFlow<List<WeatherModel>> = _citiesWeather
 
     private val _locationLatLng = MutableLiveData<LatLng?>(null)
     val locationLatLng : LiveData<LatLng?> = _locationLatLng
@@ -55,6 +61,27 @@ class MainViewModel @Inject constructor(
                 _locationLatLng.value = LatLng(event.newLocation.latitude, event.newLocation.longitude)
                 println("NewLocation: ${_locationLatLng.value}, event: ${event.newLocation}")
             }
+
+            MainEvents.GetCitiesWeatherSaved -> {
+                getCitiesWeatherSaved()
+            }
+
+            is MainEvents.OfflineCitySelected -> {
+                event.setSearchText()
+                Log.d("MainViewModel", event.weather.name)
+                _weather.value = event.weather
+            }
+
+        }
+    }
+
+    private fun getCitiesWeatherSaved() = viewModelScope.launch(Dispatchers.IO) {
+        try {
+            val citiesWeatherList = getCitiesWeatherSavedUseCase()
+            _citiesWeather.value = citiesWeatherList
+        }catch (e:Exception){
+            e.printStackTrace()
+            _citiesWeather.value = emptyList()
         }
     }
 
@@ -98,7 +125,7 @@ class MainViewModel @Inject constructor(
 
     private fun updateState(
         isLoading: Boolean,
-        weather: WeatherResponse?,
+        weather: WeatherModel?,
         error: String?
     ){
 

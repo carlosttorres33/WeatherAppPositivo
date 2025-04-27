@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     id("kotlin-kapt")
     alias(libs.plugins.daggerHilt.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -37,6 +38,7 @@ android {
     }
     buildFeatures {
         dataBinding = true
+        compose = true
     }
 }
 
@@ -83,5 +85,12 @@ dependencies {
     implementation (libs.places.ktx)
 
     implementation(libs.volley)
+
+    //Compose
+    implementation (platform(libs.androidx.compose.bom))
+    implementation (libs.androidx.activity.compose)
+    implementation (libs.androidx.ui)
+    implementation (libs.androidx.material3)
+    implementation (libs.androidx.ui.tooling.preview)
 
 }
