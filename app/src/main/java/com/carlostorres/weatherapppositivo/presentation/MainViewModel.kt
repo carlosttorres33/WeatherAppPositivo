@@ -5,8 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.carlostorres.weatherapppositivo.data.remote.model.WeatherResponse
+import com.carlostorres.weatherapppositivo.data.remote.model.WeatherResponseDto
 import com.carlostorres.weatherapppositivo.domain.usecases.GetWeatherFromCoordinatesUseCase
+import com.carlostorres.weatherapppositivo.presentation.model.WeatherModel
 import com.carlostorres.weatherapppositivo.utils.ConnectionStatus
 import com.carlostorres.weatherapppositivo.utils.ConnectivityObserver
 import com.google.android.gms.maps.model.LatLng
@@ -33,8 +34,8 @@ class MainViewModel @Inject constructor(
 
     private val _isLoading = MutableLiveData(false)
     val isLoading : LiveData<Boolean> = _isLoading
-    private val _weather = MutableLiveData<WeatherResponse?>()
-    val weather : LiveData<WeatherResponse?> = _weather
+    private val _weather = MutableLiveData<WeatherModel?>()
+    val weather : LiveData<WeatherModel?> = _weather
     private val _error = MutableLiveData<String?>()
     val error : LiveData<String?> = _error
 
@@ -98,7 +99,7 @@ class MainViewModel @Inject constructor(
 
     private fun updateState(
         isLoading: Boolean,
-        weather: WeatherResponse?,
+        weather: WeatherModel?,
         error: String?
     ){
 

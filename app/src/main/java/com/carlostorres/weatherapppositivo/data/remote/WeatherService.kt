@@ -1,6 +1,6 @@
 package com.carlostorres.weatherapppositivo.data.remote
 
-import com.carlostorres.weatherapppositivo.data.remote.model.WeatherResponse
+import com.carlostorres.weatherapppositivo.data.remote.model.WeatherResponseDto
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -14,6 +14,6 @@ interface WeatherService {
         @Query("appid") apiKey: String,
         @Query("units") units: String = "metric",
         @Query("lang") lang: String = "es",
-    ) : Response<WeatherResponse>
+    ) : Response<WeatherResponseDto>
 
 }
