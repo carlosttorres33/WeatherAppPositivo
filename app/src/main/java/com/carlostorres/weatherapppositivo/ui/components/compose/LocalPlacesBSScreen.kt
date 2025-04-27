@@ -79,7 +79,6 @@ fun LocalPlacesBSScreen(
                         modifier = Modifier,
                         place = place,
                         onItemClickListener = {
-                            Toast.makeText(context, place.name, Toast.LENGTH_SHORT).show()
                             viewModel.onEvent(
                                 MainEvents.OfflineCitySelected(
                                     weather = place,
