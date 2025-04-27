@@ -7,8 +7,8 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.BindingAdapter
 import com.carlostorres.weatherapppositivo.R
-import com.carlostorres.weatherapppositivo.data.remote.model.WeatherResponseDto
 import com.carlostorres.weatherapppositivo.presentation.model.WeatherModel
+import com.carlostorres.weatherapppositivo.utils.ConnectionStatus
 
 @BindingAdapter("weatherIcon")
 fun ImageView.setWeatherIcon(weather: WeatherModel?) {
@@ -85,4 +85,9 @@ fun TextView.humidity(weather: WeatherModel?){
     }else{
         "N/A"
     }
+}
+
+@BindingAdapter("enableOfflineSearchClick")
+fun View.enableOfflineSearchClick(hasInternet: ConnectionStatus){
+    visibility = if (hasInternet == ConnectionStatus.Lost || hasInternet == ConnectionStatus.Unavailable) View.VISIBLE else View.GONE
 }

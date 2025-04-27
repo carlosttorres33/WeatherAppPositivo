@@ -1,6 +1,10 @@
 package com.carlostorres.weatherapppositivo.di
 
 import android.content.Context
+import androidx.room.Room
+import com.carlostorres.weatherapppositivo.data.local.LocalWeatherDataSource
+import com.carlostorres.weatherapppositivo.data.local.WeatherDao
+import com.carlostorres.weatherapppositivo.data.local.WeatherDatabase
 import com.carlostorres.weatherapppositivo.data.remote.RemoteWeatherDataSource
 import com.carlostorres.weatherapppositivo.data.remote.WeatherService
 import com.carlostorres.weatherapppositivo.data.repository.WeatherRepositoryImplementation
@@ -22,6 +26,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    //region Service
     @Singleton
     @Provides
     fun provideRetrofit() : Retrofit {
@@ -49,15 +54,46 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideWeatherRepository(
-        remoteWeatherDataSource: RemoteWeatherDataSource
-    ) : WeatherRepository = WeatherRepositoryImplementation(remoteWeatherDataSource)
-
-    @Singleton
-    @Provides
     fun provideGetWeatherFromCoordinatesUseCase(
         weatherRepository: WeatherRepository
     ) : GetWeatherFromCoordinatesUseCase = GetWeatherFromCoordinatesUseCase(weatherRepository)
+    //endregion
+
+    //region Room
+    @Singleton
+    @Provides
+    fun provideWeatherDatabase(
+        @ApplicationContext context: Context
+    ) : WeatherDatabase =
+        Room.databaseBuilder(
+                context = context,
+                klass = WeatherDatabase::class.java,
+                name = "weather_database"
+            ).fallbackToDestructiveMigration(false)
+            .build()
+
+    @Singleton
+    @Provides
+    fun provideWeatherDao(
+        weatherDatabase: WeatherDatabase
+    ) = weatherDatabase.weatherDao()
+
+    @Singleton
+    @Provides
+    fun provideLocalWeatherDataSource(
+        weatherDao: WeatherDao
+    ) = LocalWeatherDataSource(weatherDao)
+    //endregion
+
+    @Singleton
+    @Provides
+    fun provideWeatherRepository(
+        remoteWeatherDataSource: RemoteWeatherDataSource,
+        localWeatherDataSource: LocalWeatherDataSource
+    ) : WeatherRepository = WeatherRepositoryImplementation(
+        remoteWeatherDataSource = remoteWeatherDataSource,
+        localWeatherDataSource = localWeatherDataSource
+    )
 
     @Singleton
     @Provides

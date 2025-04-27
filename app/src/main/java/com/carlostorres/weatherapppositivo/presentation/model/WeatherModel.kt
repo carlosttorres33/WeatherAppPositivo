@@ -8,5 +8,7 @@ data class WeatherModel(
     val windSpeed : Double,
     val rainPercentage : Int,
     val weatherDescription : String,
-    val weatherMain : String
+    val weatherMain : String,
+    val coordLat : Double,
+    val coordLon : Double
 )

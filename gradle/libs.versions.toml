@@ -1,6 +1,7 @@
 [versions]
 agp = "8.5.0"
 androidMapsUtils = "2.2.3"
+composeBom = "2024.04.00"
 easywaylocation = "2.4"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
@@ -23,7 +24,12 @@ volley = "1.2.1"
 
 [libraries]
 android-maps-utils = { module = "com.google.maps.android:android-maps-utils", version.ref = "androidMapsUtils" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose" }
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material3 = { module = "androidx.compose.material3:material3" }
+androidx-ui = { module = "androidx.compose.ui:ui" }
+androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 easywaylocation = { module = "com.github.prabhat1707:EasyWayLocation", version.ref = "easywaylocation" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -52,4 +58,5 @@ volley = { module = "com.android.volley:volley", version.ref = "volley" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 daggerHilt-android = { id = "com.google.dagger.hilt.android", version.ref = "daggerHilt-version" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 

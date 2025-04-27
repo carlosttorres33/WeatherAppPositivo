@@ -18,6 +18,17 @@ class ConnectivityObserverImpl @Inject constructor(
 
     override val isConnected: Flow<ConnectionStatus>
         get() = callbackFlow {
+
+            val isCurrentlyConnected = connectivityManager.activeNetwork?.let { network ->
+                connectivityManager.getNetworkCapabilities(network)
+                    ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
+            } ?: false
+
+            trySend(
+                if (isCurrentlyConnected) ConnectionStatus.Available
+                else ConnectionStatus.Unavailable
+            )
+
             val callback = object : ConnectivityManager.NetworkCallback(){
                 override fun onAvailable(network: Network) {
                     super.onAvailable(network)
