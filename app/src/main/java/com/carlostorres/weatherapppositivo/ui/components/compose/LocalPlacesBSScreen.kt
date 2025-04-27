@@ -1,17 +1,12 @@
 package com.carlostorres.weatherapppositivo.ui.components.compose
 
-import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,10 +15,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.carlostorres.weatherapppositivo.presentation.MainEvents
 import com.carlostorres.weatherapppositivo.presentation.MainViewModel
 import com.carlostorres.weatherapppositivo.presentation.model.WeatherModel
@@ -34,90 +31,71 @@ fun LocalPlacesBSScreen(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel,
     onItemClickListener: (WeatherModel) -> Unit,
-    onMoveCameraPosition : (LatLng) -> Unit,
-    setOfflineSearchedName : (String) -> Unit
+    onMoveCameraPosition: (LatLng) -> Unit,
+    setOfflineSearchedName: (String) -> Unit
 ) {
 
     var searchText by remember {
         mutableStateOf("")
     }
 
-    val context = LocalContext.current
-
     val savedPlaces = viewModel.citiesWeather.collectAsState()
 
-    LaunchedEffect (Unit){
+    LaunchedEffect(Unit) {
         viewModel.onEvent(
             MainEvents.GetCitiesWeatherSaved
         )
     }
 
-    Column (
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ){
+            .padding(16.dp)
+            .background(Color.White),
+    ) {
 
-        OutlinedTextField(
+        SearchTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = searchText,
-            onValueChange = {
-                searchText = it
-            },
-            placeholder = {
-                Text(text = "Buscar Lugar")
-            }
-        )
+            searchText = searchText
+        ) {
+            searchText = it
+        }
 
-        if (savedPlaces.value.isEmpty()){
-            Text(text = "Aun no hay lugares almacenados que mostrar Offline")
-        }else{
-            LazyColumn {
-                items(savedPlaces.value){ place ->
-                    LocalPlaceItem(
-                        modifier = Modifier,
-                        place = place,
-                        onItemClickListener = {
-                            viewModel.onEvent(
-                                MainEvents.OfflineCitySelected(
-                                    weather = place,
-                                    setSearchText = {
-                                        setOfflineSearchedName(place.name)
-                                    }
+        if (savedPlaces.value.isEmpty()) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Aún no hay lugares almacenados que mostrar Offline",
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ){
+                items(savedPlaces.value) { place ->
+                    if (place.name.contains(searchText, ignoreCase = true)) {
+                        LocalPlaceItem(
+                            modifier = Modifier.padding(vertical = 6.dp),
+                            place = place,
+                            onItemClickListener = {
+                                viewModel.onEvent(
+                                    MainEvents.OfflineCitySelected(
+                                        weather = place,
+                                        setSearchText = {
+                                            setOfflineSearchedName(place.name)
+                                        }
+                                    )
                                 )
-                            )
-                            onMoveCameraPosition(
-                                LatLng(place.coordLat, place.coordLon)
-                            )
-                            onItemClickListener(it)
-                        }
-                    )
-
+                                onMoveCameraPosition(
+                                    LatLng(place.coordLat, place.coordLon)
+                                )
+                                onItemClickListener(it)
+                            }
+                        )
+                    }
                 }
             }
         }
-
     }
-
-}
-
-@Composable
-fun LocalPlaceItem(
-    modifier: Modifier = Modifier,
-    place: WeatherModel,
-    onItemClickListener: (WeatherModel) -> Unit
-) {
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(20.dp)
-            .clickable {
-                onItemClickListener(place)
-            }
-    ){
-        Text(text = place.name, modifier = Modifier.align(Alignment.CenterStart))
-    }
-
 }

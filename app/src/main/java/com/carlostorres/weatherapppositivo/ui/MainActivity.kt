@@ -10,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -78,6 +80,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.white)
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.white)
         binding = ActivityMainBinding.inflate(layoutInflater)
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
@@ -139,8 +144,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Listener {
                     }
                 }
                 viewModel.error.observe(this@MainActivity) {
-                   it.let {
-                        Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT).show()
+                    it.let {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Error al obtener datos",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
